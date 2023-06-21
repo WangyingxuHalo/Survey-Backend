@@ -6,6 +6,7 @@ const { HttpException, ParameterException } = require("../core/http-exception")
 
 const { Auth } = require("../middlewares/auth");
 const { Question } = require("../models/question");
+const { Component } = require("../models/component");
 
 // router.post('/:id', new Auth().m, (ctx, next) => {
 //     const path = ctx.params // get :id
@@ -24,7 +25,7 @@ const { Question } = require("../models/question");
 // retrieve all the surveys of current user
 router.get('/', new Auth().m, async (ctx) => {
     const { uid } = ctx.auth
-    console.log("uid: ", uid)
+    // console.log("uid: ", uid)
     const { keyword, page, pageSize } = ctx.query
     ctx.body = {
         errno: 0,
@@ -37,12 +38,14 @@ router.get('/', new Auth().m, async (ctx) => {
 
 // create new survey
 router.post('/', new Auth().m, async (ctx) => {
+    console.log("trigger create new")
     const { uid } = ctx.auth
-    const title = "标题", desc = "描述", js = "", css = "", isPublished = false, isStar = false, user_id = uid, answerCount = 0
-    const question = {title, desc, js, css, isPublished, isStar, user_id, answerCount}
+    const title = "标题", desc = "描述", js = "", css = "", isPublished = false, isStar = false, user_id = uid, answerCount = 0, isDeleted = false
+    const question = { title, desc, js, css, isPublished, isStar, user_id, answerCount, isDeleted }
 
     const survey = await Question.create(question)
     const survey_id = survey.id
+    console.log("new survey id: ", survey_id)
     ctx.body = {
         errno: 0,
         data: {
@@ -51,17 +54,126 @@ router.post('/', new Auth().m, async (ctx) => {
     }
 })
 
+// retrieve all the components of a single survey sorted by order
+router.get('/:id', new Auth().m, async (ctx) => {
+    const { uid } = ctx.auth
+    const surveyId = ctx.params.id
+
+    const surveyInfoFound = await Question.findOne({
+        where: {
+            id: surveyId
+        }
+    })
+
+    // If cannot find survey
+    if (!surveyInfoFound) {
+        throw new Error("对应问卷资源未找到")
+    }
+
+    const { title, desc, js, css, isPublished, isDeleted } = surveyInfoFound
+
+    // return data
+    const retData = {
+        id: surveyId,
+        title,
+        desc,
+        js,
+        css,
+        isPublished,
+        isDeleted,
+        componentList: []
+    }
+
+    const surveyComponents = await Component.findAll({
+        where: {
+            question_id: surveyId
+        },
+        order: [
+            ['order', 'ASC']
+        ]
+    })
+
+    surveyComponents.forEach(eachComponent => {
+        const { fe_id, type, title, isHidden, isLocked, props } = eachComponent
+        const currCompToAdd = {
+            fe_id, type, title, isHidden, isLocked, props
+        }
+        retData.componentList.push(currCompToAdd)
+    })
+    console.log("return to front-end ", retData)
+
+    ctx.body = {
+        errno: 0,
+        data: retData
+    }
+})
+
 //update survey information
-// create new survey
 router.patch('/:id', new Auth().m, async (ctx) => {
     const { uid } = ctx.auth
-    
+
     ctx.status = 406
     ctx.body = {
         errno: 0,
         data: {
             id: survey_id
         }
+    }
+})
+
+//save survey information
+router.patch('/save/:id', new Auth().m, async (ctx) => {
+    const { uid } = ctx.auth
+    const surveyId = ctx.params.id
+    const { title, desc, js, css, isPublished, createIds, componentList, deleteIds } = ctx.request.body
+    // update survey info
+    Question.update({
+        title,
+        desc,
+        js,
+        css,
+        isPublished
+    }, {
+        where: {
+            id: surveyId
+        }
+    })
+
+    // add or update components info
+    for (component of componentList) {
+        const { fe_id, title, type, props, order, isHidden = false, isLocked = false } = component
+
+        if (createIds.includes(fe_id)) {
+            const componentToCreate = { fe_id, title, type, props, order, isHidden, isLocked, question_id: surveyId }
+            await Component.create(componentToCreate)
+        } else {
+            // If it is older one, update information to database
+            await Component.update({
+                title,
+                isHidden,
+                isLocked,
+                order,
+                props,
+            }, {
+                where: {
+                    fe_id: fe_id
+                }
+            })
+        }
+    }
+    // delete record if it is deleted
+    for (deleteId of deleteIds) {
+        await Component.destroy({
+            where: {
+                fe_id: deleteId,
+                question_id: surveyId
+            }
+        })
+    }
+
+    // ctx.status = 406
+    ctx.body = {
+        errno: 0
     }
 })
 

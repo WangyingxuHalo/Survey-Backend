@@ -14,6 +14,7 @@ Question.init({
     js: Sequelize.TEXT,
     css: Sequelize.TEXT,
     isPublished: Sequelize.BOOLEAN,
+    isDeleted: Sequelize.BOOLEAN,
     isStar: Sequelize.BOOLEAN,
     answerCount: Sequelize.INTEGER,
     user_id: {

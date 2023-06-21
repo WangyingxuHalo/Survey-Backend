@@ -4,11 +4,12 @@ const { Question } = require("./question")
 
 class Component extends Model {}
 Component.init({
-    fe_id: {
+    id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true
     },
+    fe_id: Sequelize.STRING,
     type: Sequelize.STRING,
     title: Sequelize.STRING,
     isHidden: Sequelize.BOOLEAN,
