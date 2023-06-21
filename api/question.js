@@ -1,4 +1,5 @@
 const Router = require("koa-router")
+const { Op } = require("sequelize")
 const router = new Router({
     prefix: "/api/question"
 });
@@ -24,14 +25,63 @@ const { Component } = require("../models/component");
 
 // retrieve all the surveys of current user
 router.get('/', new Auth().m, async (ctx) => {
+
+    // user id
     const { uid } = ctx.auth
-    // console.log("uid: ", uid)
-    const { keyword, page, pageSize } = ctx.query
+    const { keyword, page, pageSize, isStar, isDeleted } = ctx.query
+
+    const pageNumber = parseInt(page) || 1
+    const pageSizeNumber = parseInt(pageSize) || 10
+
+    // database search condition
+    const whereCondition = {
+        title: {
+            [Op.like]: `%${keyword}%`
+        },
+        user_id: uid
+    }
+
+    // isStar & isDeleted condition
+    if (isStar === "true") {
+        whereCondition.isStar = true
+    }
+
+    if (isDeleted === "true") {
+        whereCondition.isDeleted = true
+    } else {
+        whereCondition.isDeleted = false
+    }
+
+    // Search all the results related to this user
+    const { rows, count } = await Question.findAndCountAll({
+        where: whereCondition,
+        order: [
+            ['createdAt', 'DESC']
+        ],
+        offset: (pageNumber - 1) * pageSizeNumber,
+        limit: pageSizeNumber
+    })
+
+    // put all the surveys related to this user in the return list
+    const retData = []
+    rows.forEach(survey => {
+        const { id, title, isPublished, isStar, answerCount, createdAt } = survey
+        const formattedCreatedAt = createdAt.toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+            second: 'numeric',
+        })
+        retData.push({ _id: id, title, isPublished, isStar, answerCount, createdAt: formattedCreatedAt })
+    })
+
     ctx.body = {
         errno: 0,
         data: {
-            list: [],
-            total: 0
+            list: retData,
+            total: count
         }
     }
 })
@@ -100,7 +150,6 @@ router.get('/:id', new Auth().m, async (ctx) => {
         }
         retData.componentList.push(currCompToAdd)
     })
-    console.log("return to front-end ", retData)
 
     ctx.body = {
         errno: 0,
@@ -112,12 +161,31 @@ router.get('/:id', new Auth().m, async (ctx) => {
 router.patch('/:id', new Auth().m, async (ctx) => {
     const { uid } = ctx.auth
 
-    ctx.status = 406
-    ctx.body = {
-        errno: 0,
-        data: {
-            id: survey_id
+    const surveyId = ctx.params.id
+    const { isStar, isPublished, isDeleted } = ctx.request.body
+
+    const setCondition = {}
+    if (isStar === true) {
+        setCondition.isStar = true
+    }
+
+    if (isPublished === true) {
+        setCondition.isPublished = true
+    }
+
+    if (isDeleted === true) {
+        setCondition.isDeleted = true
+    }
+
+    // TODO: here
+    await Question.update(setCondition,{
+        where: {
+            id: surveyId
         }
+    })
+
+    ctx.body = {
+        errno: 0
     }
 })
 
