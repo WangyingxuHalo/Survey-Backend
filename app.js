@@ -7,6 +7,7 @@ const catchError = require("./middlewares/exception")
 require("./models/user")
 require("./models/question")
 require("./models/component")
+require("./models/answer")
 
 const app = new Koa()
 app.use(catchError)

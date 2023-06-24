@@ -1,21 +1,18 @@
 const { Sequelize, Model} = require("sequelize")
 const { sequelize } = require("../core/db")
 const { Question } = require("./question")
+const { Component } = require("./component")
 
-class Component extends Model {}
-Component.init({
+class Answer extends Model {}
+Answer.init({
     id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true
     },
     fe_id: Sequelize.STRING,
-    type: Sequelize.STRING,
-    title: Sequelize.STRING,
-    isHidden: Sequelize.BOOLEAN,
-    isLocked: Sequelize.BOOLEAN,
-    order: Sequelize.INTEGER,
-    props: Sequelize.JSON,
+    value: Sequelize.STRING,
+    identifier: Sequelize.STRING, // To distinguish which anonymous person fill this answer
     question_id: {
         type: Sequelize.INTEGER,
         references: {
@@ -25,9 +22,9 @@ Component.init({
     }
 }, {
     sequelize,
-    tableName: "component"
+    tableName: "answer"
 })
 
 module.exports = {
-    Component
+    Answer
 }

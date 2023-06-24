@@ -106,6 +106,7 @@ router.post('/', new Auth().m, async (ctx) => {
 
 // retrieve all the components of a single survey sorted by order
 router.get('/:id', new Auth().m, async (ctx) => {
+    console.log("trigger this !")
     const { uid } = ctx.auth
     const surveyId = ctx.params.id
 
@@ -175,10 +176,12 @@ router.patch('/:id', new Auth().m, async (ctx) => {
 
     if (isDeleted === true) {
         setCondition.isDeleted = true
+    } else if (isDeleted === false) {
+        setCondition.isDeleted = false
     }
 
     // TODO: here
-    await Question.update(setCondition,{
+    await Question.update(setCondition, {
         where: {
             id: surveyId
         }
@@ -244,5 +247,70 @@ router.patch('/save/:id', new Auth().m, async (ctx) => {
         errno: 0
     }
 })
+
+// duplicate survey
+router.post('/duplicate/:id', new Auth().m, async (ctx) => {
+    const { uid } = ctx.auth
+    const surveyIdToDuplicate = ctx.params.id
+
+    // find that survey first in the database
+    const surveyFound = await Question.findOne({
+        where: {
+            id: surveyIdToDuplicate
+        }
+    })
+
+    if (!surveyFound) {
+        throw new Error("找不到当前问卷")
+    }
+
+
+    // duplicate survey info
+    const { title, desc, js, css } = surveyFound
+    const surveyCopied = { title, desc, js, css, isPublished: false, isStar: false, user_id: uid, answerCount: 0, isDeleted: false }
+
+    const surveyDuplicated = await Question.create(surveyCopied)
+    const newSurveyId = surveyDuplicated.id
+
+    // duplicate component info
+    const componentsFound = await Component.findAll({
+        where: {
+            question_id: surveyIdToDuplicate
+        }
+    })
+
+    // create all copied components
+    componentsFound.forEach(async (eachComp) => {
+        const { fe_id, type, title, isHidden, isLocked, order, props } = eachComp
+        const copiedComponent = { fe_id, type, title, isHidden, isLocked, order, props, question_id: newSurveyId }
+        await Component.create(copiedComponent)
+    })
+
+    ctx.body = {
+        errno: 0,
+        data: {
+            id: newSurveyId
+        }
+    }
+})
+
+// delete survey from Trash
+router.delete('/', new Auth().m, async (ctx, next) => {
+    const IdsToDelete = ctx.request.body
+
+    IdsToDelete.forEach(async(id) => {
+        await Question.destroy({
+            where: {
+                id: id
+            }
+        })
+    })
+    
+    ctx.body = {
+        errno: 0
+    }
+})
+
+
 
 module.exports = router
