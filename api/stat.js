@@ -11,7 +11,6 @@ const router = new Router({
 router.get('/:questionId', async (ctx) => {
 
     const questionId = ctx.params.questionId
-    console.log("questionId: ", questionId)
 
     const surveyFound = await Question.findOne({
         where: {
@@ -46,7 +45,6 @@ router.get('/:questionId', async (ctx) => {
     })
 
     const data = { id: parseInt(questionId) || 1, title, desc, isDeleted, isPublished, componentList }
-    console.log("data: ", data)
 
     ctx.body = {
         errno: 0,
@@ -58,7 +56,6 @@ router.get('/:questionId', async (ctx) => {
 router.get('/tob/:questionId', async (ctx) => {
 
     const questionId = ctx.params.questionId
-    console.log("questionId: ", questionId)
 
     const surveyFound = await Question.findOne({
         where: {
@@ -108,7 +105,6 @@ router.get('/tob/:questionId', async (ctx) => {
     })
     const total = identifierSet.size
     const retData = Object.values(map)
-    console.log("return data: ", retData)
 
     ctx.body = {
         errno: 0,
@@ -143,7 +139,6 @@ router.get('/tob/:questionId/:componentId/:selectedComponentType', new Auth().m,
         },
         attributes: ['value']
     })
-    console.log("all answers: ", allAnswers)
     const retDataMap = {}
     const valueSet = new Set()
     const retData = []

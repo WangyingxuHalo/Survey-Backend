@@ -10,7 +10,6 @@ const catchError = async (ctx, next) => {
         // }
 
         if (error instanceof HttpException) {
-            console.log("go to here")
             ctx.status = error.status
             ctx.body = {
                 msg: error.msg,

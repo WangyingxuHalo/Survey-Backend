@@ -88,14 +88,12 @@ router.get('/', new Auth().m, async (ctx) => {
 
 // create new survey
 router.post('/', new Auth().m, async (ctx) => {
-    console.log("trigger create new")
     const { uid } = ctx.auth
     const title = "标题", desc = "描述", js = "", css = "", isPublished = false, isStar = false, user_id = uid, answerCount = 0, isDeleted = false
     const question = { title, desc, js, css, isPublished, isStar, user_id, answerCount, isDeleted }
 
     const survey = await Question.create(question)
     const survey_id = survey.id
-    console.log("new survey id: ", survey_id)
     ctx.body = {
         errno: 0,
         data: {
@@ -106,7 +104,6 @@ router.post('/', new Auth().m, async (ctx) => {
 
 // retrieve all the components of a single survey sorted by order
 router.get('/:id', new Auth().m, async (ctx) => {
-    console.log("trigger this !")
     const { uid } = ctx.auth
     const surveyId = ctx.params.id
 

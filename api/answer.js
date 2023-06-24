@@ -5,7 +5,6 @@ const { Answer } = require("../models/answer")
 
 router.post('/api/answer', async (ctx) => {
     const body = ctx.request.body
-    console.log("body: ", body)
     const { questionId, answerList = [], identifier } = body
 
     answerList.forEach(async (answer) => {
