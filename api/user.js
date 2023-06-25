@@ -8,6 +8,7 @@ const { Auth } = require("../middlewares/auth")
 
 // 注册
 router.post('/user/register', async (ctx) => {
+    console.log("trigger register")
     const path = ctx.params // get :id
     const query = ctx.request.query // get ?xxx
     const headers = ctx.request.header // get headers
@@ -42,6 +43,7 @@ router.post('/user/register', async (ctx) => {
 
 // 登录
 router.post('/user/login', async (ctx) => {
+    console.log("trigger login")
     const path = ctx.params // get :id
     const query = ctx.request.query // get ?xxx
     const headers = ctx.request.header // get headers
