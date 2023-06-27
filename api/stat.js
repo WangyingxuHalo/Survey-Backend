@@ -154,7 +154,7 @@ router.get('/tob/:questionId/:componentId/:selectedComponentType', new Auth().m,
     } else if (selectedComponentType === "questionCheckbox") {
         allAnswers.forEach(({ value }) => {
             // first split by ','
-            const valuesArr = value.split(",")
+            const valuesArr = value.split(",").filter(val => val !== "")
             valuesArr.forEach(checkboxValue => {
                 if (!valueSet.has(checkboxValue)) {
                     valueSet.add(checkboxValue)

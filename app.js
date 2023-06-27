@@ -14,7 +14,7 @@ app.use(catchError)
 app.use(parser())
 app.use(cors({
     origin: (ctx) => {
-        const allowedOrigins = ['http://survey.wwwyxxx.uk', 'survey.https://wwwyxxx.uk'];
+        const allowedOrigins = ['http://mysurvey.wwwyxxx.uk', 'https://mysurvey.wwwyxxx.uk'];
         const requestOrigin = ctx.accept.headers.origin;
         if (allowedOrigins.includes(requestOrigin)) {
             return requestOrigin; // Return the same origin, allowing it.
