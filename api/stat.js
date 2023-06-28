@@ -7,7 +7,7 @@ const router = new Router({
     prefix: "/api/stat"
 });
 
-// get question list for survey-client
+// get question list for survey stat page
 router.get('/:questionId', async (ctx) => {
 
     const questionId = ctx.params.questionId
