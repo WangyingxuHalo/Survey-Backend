@@ -13,7 +13,7 @@
 
   
 
-1）Survey-Backend: https://github.com/WangyingxuHalo/Survey-Backend
+1）SurveyApp: https://github.com/WangyingxuHalo/surveyApp
 
   
 
